@@ -53,11 +53,11 @@ def _make_dataloaders(train_set, valid_set, test_set, train_size, valid_size, ba
     train_indices = indices[:len(indices)-valid_size][:train_size or None]
     valid_indices = indices[len(indices)-valid_size:] if valid_size else None
 
-    train_loader = torch.utils.data.DataLoader(train_set, pin_memory=True, batch_size=batch_size,
+    train_loader = torch.utils.data.DataLoader(train_set, pin_memory=False, batch_size=batch_size,
                                                sampler=SubsetRandomSampler(train_indices))
-    test_loader = torch.utils.data.DataLoader(test_set, pin_memory=True, batch_size=batch_size)
+    test_loader = torch.utils.data.DataLoader(test_set, pin_memory=False, batch_size=batch_size)
     if valid_size:
-        valid_loader = torch.utils.data.DataLoader(valid_set, pin_memory=True, batch_size=batch_size,
+        valid_loader = torch.utils.data.DataLoader(valid_set, pin_memory=False, batch_size=batch_size,
                                                    sampler=SubsetRandomSampler(valid_indices))
     else:
         valid_loader = None
@@ -96,8 +96,8 @@ def run_epoch(loader, model, criterion, optimizer, epoch=0, n_epochs=0, train=Tr
             optimizer.zero_grad()
 
         # Forward pass
-        input_var = Variable(input, volatile=(not train)).cuda(async=True)
-        target_var = Variable(target, volatile=(not train), requires_grad=False).cuda(async=True)
+        input_var = Variable(input, volatile=(not train)) #.cuda(async=True)
+        target_var = Variable(target, volatile=(not train), requires_grad=False) #.cuda(async=True)
         output_var = model(input_var)
         loss = criterion(output_var, target_var)
 
@@ -150,7 +150,7 @@ def train(model, train_set, valid_set, test_set, save, train_size=0, valid_size=
     if torch.cuda.device_count() > 1:
         model_wrapper = torch.nn.DataParallel(model).cuda()
     else:
-        model_wrapper = model.cuda()
+        model_wrapper = model #.cuda()
 
     # Train model
     best_error = 1
@@ -231,6 +231,7 @@ def demo(data=os.getenv('DATA_DIR'), save='/tmp', depth=40, growth_rate=12, effi
     # Models
     klass = DenseNetEfficient if efficient else DenseNet
     klass = DenseNetEfficientMulti if multi_gpu else klass
+    print("using model ", klass)
     model = klass(
         growth_rate=growth_rate,
         block_config=block_config,

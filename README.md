@@ -31,6 +31,14 @@ They work as stand-alone files.
 
 **Running the demo:**
 
+- CPU
+
+**First comment mkl path in ~/.bashrc**
+
+```sh
+python demo.py --efficient False --data <path_to_data_dir> --save <path_to_save_dir>
+```
+
 - single GPU:
 
 ```sh
